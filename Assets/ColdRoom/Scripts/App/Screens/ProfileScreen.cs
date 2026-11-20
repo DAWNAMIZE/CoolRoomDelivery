@@ -32,7 +32,7 @@ namespace ColdRoom.App.Screens
             header.Add(avatar);
             var identity = Ui.Col("profile-identity");
             _nameLabel = Ui.Text("Tola Adeyemi", "profile-name");
-            _emailLabel = Ui.Text("customer@coldroom.test", "profile-email");
+            _emailLabel = Ui.Text("customer@camaanstores.test", "profile-email");
             var meta = Ui.Row("profile-meta");
             _roleLabel = Ui.Pill("Customer", "pill-accent");
             meta.Add(_roleLabel);
@@ -53,7 +53,7 @@ namespace ColdRoom.App.Screens
             phoneField.Add(Ui.Text("PHONE", "field-label"));
             phoneField.Add(_phoneValue);
             fields.Add(phoneField);
-            fields.Add(Ui.Field("Email", "customer@coldroom.test", "profile-field"));
+            fields.Add(Ui.Field("Email", "customer@camaanstores.test", "profile-field"));
             _stationValue = Ui.Text("Lekki Phase 1", "field-value");
             var stationField = Ui.Col("field", "profile-field");
             stationField.Add(Ui.Text("DEFAULT PICKUP STATION", "field-label"));
@@ -86,14 +86,14 @@ namespace ColdRoom.App.Screens
             var demo = Ui.Col("card", "demo-card");
             demo.Add(Ui.Text("DEMO ACCOUNTS", "card-kicker"));
             demo.Add(Ui.Text("Seeded for testing", "card-title"));
-            demo.Add(DemoRow("Customer", "customer@coldroom.test"));
-            demo.Add(DemoRow("Operator", "operator@coldroom.test"));
-            demo.Add(DemoRow("Rider", "rider@coldroom.test"));
+            demo.Add(DemoRow("Customer", "customer@camaanstores.test"));
+            demo.Add(DemoRow("Operator", "operator@camaanstores.test"));
+            demo.Add(DemoRow("Rider", "rider@camaanstores.test"));
             demo.Add(Ui.Divider());
             var password = Ui.Row("password-row");
             password.Add(Ui.Text("Password", "field-label"));
             password.Add(Ui.Spacer());
-            password.Add(Ui.Text("ColdRoom123!", "password-value"));
+            password.Add(Ui.Text("CamaanStores123!", "password-value"));
             demo.Add(password);
             demo.Add(Ui.Text("Real sign-in is wired up in step 2. This screen is a preview of the customer profile.", "fine-print"));
             aside.Add(demo);

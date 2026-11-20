@@ -24,7 +24,7 @@ namespace ColdRoom.App.Screens
             top.Add(Ui.Spacer());
             top.Add(Ui.Pill("New request", "pill-accent"));
             request.Add(top);
-            request.Add(Ui.Text("Store goods with ColdRoom", "card-title", "card-title-lg"));
+            request.Add(Ui.Text("Store goods with CamaanStores", "card-title", "card-title-lg"));
             request.Add(Ui.Text(
                 "Tell us what you are storing and which station you'll use. We approve the request, receive the goods, and keep them at temperature until you ask for release.",
                 "card-copy"));

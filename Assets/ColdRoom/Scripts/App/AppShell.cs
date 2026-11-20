@@ -35,9 +35,9 @@ namespace ColdRoom.App
 
         private static readonly Dictionary<UserRole, RolePersona> Personas = new()
         {
-            { UserRole.Customer, new RolePersona(UserRole.Customer, "Tola Adeyemi", "customer@coldroom.test", "TA") },
-            { UserRole.Operator, new RolePersona(UserRole.Operator, "Ngozi Eze", "operator@coldroom.test", "NE") },
-            { UserRole.Rider, new RolePersona(UserRole.Rider, "Seye Ogun", "rider@coldroom.test", "SO") }
+            { UserRole.Customer, new RolePersona(UserRole.Customer, "Tola Adeyemi", "customer@camaanstores.test", "TA") },
+            { UserRole.Operator, new RolePersona(UserRole.Operator, "Ngozi Eze", "operator@camaanstores.test", "NE") },
+            { UserRole.Rider, new RolePersona(UserRole.Rider, "Seye Ogun", "rider@camaanstores.test", "SO") }
         };
 
         private readonly ColdRoomApp _app;
@@ -122,9 +122,9 @@ namespace ColdRoom.App
             var rail = Ui.Col("rail");
 
             var brand = Ui.Row("brand");
-            brand.Add(Ui.Monogram("CR", "brand-mark"));
+            brand.Add(Ui.Monogram("CS", "brand-mark"));
             var brandCopy = Ui.Col("brand-copy");
-            brandCopy.Add(Ui.Text("ColdRoom", "brand-name"));
+            brandCopy.Add(Ui.Text("CamaanStores", "brand-name"));
             brandCopy.Add(Ui.Text("Lagos cold-chain", "brand-sub"));
             brand.Add(brandCopy);
             rail.Add(brand);
@@ -201,7 +201,7 @@ namespace ColdRoom.App
             bar.Add(Ui.Spacer());
 
             _breadcrumb = Ui.Text("SHOP", "breadcrumb-page");
-            bar.Add(Ui.Text("COLDROOM", "breadcrumb-root"));
+            bar.Add(Ui.Text("CAMAANSTORES", "breadcrumb-root"));
             bar.Add(Ui.Text("/", "breadcrumb-sep"));
             bar.Add(_breadcrumb);
 
@@ -226,8 +226,8 @@ namespace ColdRoom.App
             var bar = Ui.Row("topbar", "topbar-compact");
 
             var brand = Ui.Row("compact-brand");
-            brand.Add(Ui.Monogram("CR", "brand-mark-sm"));
-            brand.Add(Ui.Text("ColdRoom", "compact-brand-name"));
+            brand.Add(Ui.Monogram("CS", "brand-mark-sm"));
+            brand.Add(Ui.Text("CamaanStores", "compact-brand-name"));
             bar.Add(brand);
 
             bar.Add(Ui.Spacer());

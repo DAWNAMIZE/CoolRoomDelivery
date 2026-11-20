@@ -84,17 +84,20 @@
 }
 
 .brand-mark {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
     background-color: #6FE7D7;
     flex-shrink: 0;
 }
 
 .brand-mark .monogram-text {
-    font-size: 13px;
-    color: #06201E;
-    letter-spacing: 0.4px;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: #041A18;
+    letter-spacing: 0.2px;
+    -unity-text-outline-width: 0.6px;
+    -unity-text-outline-color: #041A18;
 }
 
 .brand-copy {
@@ -102,10 +105,13 @@
 }
 
 .brand-name {
-    font-size: 17px;
+    font-size: 20px;
     -unity-font-style: bold;
-    color: #F2FBFF;
+    color: #FFFFFF;
     letter-spacing: -0.2px;
+    -unity-text-outline-width: 0.7px;
+    -unity-text-outline-color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .brand-sub {
@@ -432,23 +438,30 @@
 }
 
 .brand-mark-sm {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
     background-color: #6FE7D7;
 }
 
 .brand-mark-sm .monogram-text {
-    font-size: 9px;
-    color: #06201E;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #041A18;
+    letter-spacing: 0.2px;
+    -unity-text-outline-width: 0.5px;
+    -unity-text-outline-color: #041A18;
 }
 
 .compact-brand-name {
-    font-size: 14px;
+    font-size: 17px;
     -unity-font-style: bold;
-    color: #F2FBFF;
+    color: #FFFFFF;
     margin-left: 8px;
     letter-spacing: -0.1px;
+    -unity-text-outline-width: 0.6px;
+    -unity-text-outline-color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .role-pill {

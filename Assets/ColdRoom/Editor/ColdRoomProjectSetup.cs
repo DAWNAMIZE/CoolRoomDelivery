@@ -119,8 +119,8 @@ namespace ColdRoom.EditorTools
 
         private static void ApplyPlayerSettings()
         {
-            PlayerSettings.productName = "ColdRoom";
-            PlayerSettings.companyName = "ColdRoom Logistics";
+            PlayerSettings.productName = "CamaanStores";
+            PlayerSettings.companyName = "CamaanStores";
             PlayerSettings.bundleVersion = "0.1.0";
             PlayerSettings.defaultWebScreenWidth = 1280;
             PlayerSettings.defaultWebScreenHeight = 800;

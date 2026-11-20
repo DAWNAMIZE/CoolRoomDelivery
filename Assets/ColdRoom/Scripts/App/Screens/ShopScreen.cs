@@ -45,7 +45,7 @@ namespace ColdRoom.App.Screens
 
             copy.Add(Ui.Text("Cold chain,\nwithout the chaos.", "hero-title"));
             copy.Add(Ui.Text(
-                "ColdRoom keeps meat, fish, poultry and produce at temperature while you get on with your day. " +
+                "CamaanStores keeps meat, fish, poultry and produce at temperature while you get on with your day. " +
                 "Pick a station, choose your urgency, and collect when it suits you.",
                 "hero-sub"));
 
