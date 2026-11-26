@@ -1,4 +1,5 @@
 using System.IO;
+using ColdRoom.Api;
 using ColdRoom.App;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -14,6 +15,7 @@ namespace ColdRoom.EditorTools
         private const string ScenePath = Root + "/Scenes/ColdRoom.unity";
         private const string PanelSettingsPath = Root + "/Resources/ColdRoomPanelSettings.asset";
         private const string ThemePath = Root + "/UI/ColdRoomTheme.tss";
+        private const string AppConfigPath = Root + "/Resources/AppConfig.asset";
 
         [InitializeOnLoadMethod]
         private static void AutoScaffold()
@@ -25,6 +27,8 @@ namespace ColdRoom.EditorTools
                     return;
                 }
 
+                EnsureAppConfig();
+
                 if (File.Exists(ScenePath))
                 {
                     return;
@@ -32,6 +36,19 @@ namespace ColdRoom.EditorTools
 
                 BuildAppScene();
             };
+        }
+
+        private static void EnsureAppConfig()
+        {
+            if (File.Exists(AppConfigPath))
+            {
+                return;
+            }
+
+            var config = ScriptableObject.CreateInstance<AppConfig>();
+            AssetDatabase.CreateAsset(config, AppConfigPath);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[ColdRoom] Created Resources/AppConfig.asset with useMockApi enabled.");
         }
 
         [MenuItem("ColdRoom/Setup/Rebuild App Scene")]

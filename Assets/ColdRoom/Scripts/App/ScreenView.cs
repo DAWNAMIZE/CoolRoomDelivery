@@ -47,6 +47,27 @@ namespace ColdRoom.App
             return head;
         }
 
+        protected VisualElement LoadingState(string copy)
+        {
+            var card = Ui.Col("card", "state-card");
+            card.Add(Ui.Dot("pulse-dot"));
+            card.Add(Ui.Text("Loading", "state-title"));
+            card.Add(Ui.Text(copy, "state-body"));
+            return card;
+        }
+
+        protected VisualElement ErrorState(string title, string copy, System.Action retry)
+        {
+            var card = Ui.Col("card", "state-card");
+            card.Add(Ui.Monogram("!", "monogram-lg"));
+            card.Add(Ui.Text(title, "state-title"));
+            card.Add(Ui.Text(copy, "state-body"));
+            var actions = Ui.Row("button-row", "state-actions");
+            actions.Add(Ui.Secondary("Try again", retry));
+            card.Add(actions);
+            return card;
+        }
+
         protected VisualElement EmptyState(string badge, string title, string copy, params (string Label, System.Action Action)[] actions)
         {
             var card = Ui.Col("card", "empty-state");

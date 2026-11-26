@@ -1,29 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Threading.Tasks;
+using ColdRoom.Api;
 using ColdRoom.App.Screens;
 using ColdRoom.Core;
+using ColdRoom.Core.Models;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace ColdRoom.App
 {
-    public sealed class RolePersona
-    {
-        public RolePersona(UserRole role, string name, string email, string initials)
-        {
-            Role = role;
-            Name = name;
-            Email = email;
-            Initials = initials;
-        }
-
-        public UserRole Role { get; }
-        public string Name { get; }
-        public string Email { get; }
-        public string Initials { get; }
-    }
-
     public sealed class AppShell
     {
         private static readonly Dictionary<UserRole, string[]> NavByRole = new()
@@ -33,26 +19,18 @@ namespace ColdRoom.App
             { UserRole.Rider, new[] { "rider", "profile" } }
         };
 
-        private static readonly Dictionary<UserRole, RolePersona> Personas = new()
-        {
-            { UserRole.Customer, new RolePersona(UserRole.Customer, "Tola Adeyemi", "customer@camaanstores.test", "TA") },
-            { UserRole.Operator, new RolePersona(UserRole.Operator, "Ngozi Eze", "operator@camaanstores.test", "NE") },
-            { UserRole.Rider, new RolePersona(UserRole.Rider, "Seye Ogun", "rider@camaanstores.test", "SO") }
-        };
-
-        private readonly ColdRoomApp _app;
         private readonly VisualElement _appRoot;
+        private readonly IColdRoomApi _api;
+        private readonly Func<Task> _logout;
         private readonly Dictionary<string, ScreenView> _screens = new();
-        private readonly List<(UserRole Role, Button Button)> _roleButtons = new();
         private readonly List<(string Route, Button Button)> _railButtons = new();
         private readonly List<(string Route, Button Button)> _tabButtons = new();
 
+        private User _user;
         private VisualElement _shell;
         private VisualElement _railNav;
-        private VisualElement _roleSwitchHost;
         private VisualElement _tabbar;
         private ScrollView _content;
-        private Button _compactRoleButton;
         private Label _breadcrumb;
         private Label _clock;
         private Label _railName;
@@ -60,30 +38,37 @@ namespace ColdRoom.App
         private Label _railAvatarText;
         private Label _wideAvatarText;
         private Label _compactAvatarText;
+        private Label _compactRoleLabel;
         private Label _layoutChip;
         private Label _toastLabel;
         private VisualElement _toastHost;
         private VisualElement _toast;
         private IVisualElementScheduledItem _toastTimer;
-        private UserRole _role = UserRole.Customer;
         private string _route;
         private ScreenView _currentScreen;
 
-        public AppShell(ColdRoomApp app, VisualElement appRoot)
+        public AppShell(VisualElement appRoot, IColdRoomApi api, User user, Func<Task> logout)
         {
-            _app = app;
             _appRoot = appRoot;
+            _api = api;
+            _user = user;
+            _logout = logout;
         }
 
-        public UserRole Role => _role;
-        public RolePersona Persona => Personas[_role];
-        public string RoleLabel => _role.ToString();
+        public User User => _user;
+        public IColdRoomApi Api => _api;
+        public UserRole Role => _user.Role;
+        public string RoleLabel => _user.Role.ToString();
+        public string DisplayName => _user.FullName;
+        public string Email => _user.Email;
+        public string Initials => InitialsOf(_user.FullName);
         public string CurrentRoute => _route;
 
         public void Build()
         {
             _appRoot.Clear();
             _appRoot.AddToClassList("app");
+            _appRoot.RemoveFromClassList("auth-page");
 
             RegisterScreens();
 
@@ -94,10 +79,11 @@ namespace ColdRoom.App
             _shell.Add(BuildMain());
 
             BuildToast();
+            UpdatePersonChrome();
 
             _shell.schedule.Execute(UpdateClock).Every(1000);
-            UpdatePersonaChrome();
-            SetRole(_role, notify: false);
+            BuildNav();
+            Navigate(DefaultRoute(Role));
         }
 
         private void RegisterScreens()
@@ -130,9 +116,11 @@ namespace ColdRoom.App
             rail.Add(brand);
 
             var roleBlock = Ui.Col("role-block");
-            roleBlock.Add(Ui.Text("PREVIEW AS", "rail-label"));
-            _roleSwitchHost = Ui.Row("role-switch");
-            roleBlock.Add(_roleSwitchHost);
+            roleBlock.Add(Ui.Text("SIGNED IN AS", "rail-label"));
+            var roleRow = Ui.Row("rail-role-row");
+            roleRow.Add(Ui.Pill(RoleLabel, "pill-accent"));
+            roleRow.Add(Ui.Text("Session active", "rail-role-note"));
+            roleBlock.Add(roleRow);
             rail.Add(roleBlock);
 
             _railNav = Ui.Col("rail-nav");
@@ -141,12 +129,12 @@ namespace ColdRoom.App
             rail.Add(Ui.Spacer());
 
             var person = Ui.Row("rail-person");
-            var avatar = Ui.Avatar(Persona.Initials, "avatar-sm");
+            var avatar = Ui.Avatar(Initials, "avatar-sm");
             _railAvatarText = avatar.Q<Label>();
             person.Add(avatar);
             var personCopy = Ui.Col("rail-person-copy");
-            _railName = Ui.Text(Persona.Name, "rail-person-name");
-            _railEmail = Ui.Text(Persona.Email, "rail-person-email");
+            _railName = Ui.Text(DisplayName, "rail-person-name");
+            _railEmail = Ui.Text(Email, "rail-person-email");
             personCopy.Add(_railName);
             personCopy.Add(_railEmail);
             person.Add(personCopy);
@@ -162,7 +150,7 @@ namespace ColdRoom.App
             _layoutChip = Ui.Text("Wide", "layout-chip");
             footerRow.Add(_layoutChip);
             footer.Add(footerRow);
-            footer.Add(Ui.Text("Step 1 of 11 \u00B7 App shell", "rail-footer-sub"));
+            footer.Add(Ui.Text("Step 2 of 11 \u00B7 Auth & profile", "rail-footer-sub"));
             rail.Add(footer);
 
             return rail;
@@ -213,7 +201,7 @@ namespace ColdRoom.App
             clockCopy.Add(_clock);
             bar.Add(clockCopy);
 
-            var avatar = Ui.Avatar(Persona.Initials, "avatar-sm", "topbar-avatar");
+            var avatar = Ui.Avatar(Initials, "avatar-sm", "topbar-avatar");
             _wideAvatarText = avatar.Q<Label>();
             Ui.Clickable(avatar, () => Navigate("profile"));
             bar.Add(avatar);
@@ -232,11 +220,10 @@ namespace ColdRoom.App
 
             bar.Add(Ui.Spacer());
 
-            _compactRoleButton = Ui.Button(Persona.Role.ToString(), CycleRole, "role-pill");
-            _compactRoleButton.tooltip = "Tap to preview another role";
-            bar.Add(_compactRoleButton);
+            _compactRoleLabel = Ui.Text(RoleLabel, "role-pill-static");
+            bar.Add(_compactRoleLabel);
 
-            var avatar = Ui.Avatar(Persona.Initials, "avatar-xs");
+            var avatar = Ui.Avatar(Initials, "avatar-xs");
             _compactAvatarText = avatar.Q<Label>();
             Ui.Clickable(avatar, () => Navigate("profile"));
             bar.Add(avatar);
@@ -257,91 +244,50 @@ namespace ColdRoom.App
             _appRoot.Add(_toastHost);
         }
 
-        private void RebuildRoleSwitch()
-        {
-            _roleSwitchHost.Clear();
-            _roleButtons.Clear();
-
-            foreach (UserRole role in new[] { UserRole.Customer, UserRole.Operator, UserRole.Rider })
-            {
-                var button = Ui.Button(role.ToString(), () => SetRole(role), "seg", "seg-small");
-                button.userData = role;
-                _roleButtons.Add((role, button));
-                _roleSwitchHost.Add(button);
-            }
-
-            RefreshRoleButtons();
-        }
-
-        private void RefreshRoleButtons()
-        {
-            foreach (var entry in _roleButtons)
-            {
-                entry.Button.EnableInClassList("active", entry.Role == _role);
-            }
-
-            if (_compactRoleButton != null)
-            {
-                _compactRoleButton.text = Persona.Role.ToString();
-            }
-        }
-
-        private void RebuildRailNav()
+        private void BuildNav()
         {
             _railNav.Clear();
             _railButtons.Clear();
-
-            foreach (string route in NavByRole[_role])
-            {
-                if (!_screens.TryGetValue(route, out ScreenView screen))
-                {
-                    continue;
-                }
-
-                var button = Ui.Button(string.Empty, () => Navigate(route), "nav-item");
-                button.userData = route;
-                var badge = Ui.Monogram(screen.Badge, "nav-badge");
-                button.Add(badge);
-                button.Add(Ui.Text(screen.NavLabel, "nav-label"));
-                _railButtons.Add((route, button));
-                _railNav.Add(button);
-            }
-        }
-
-        private void RebuildTabbar()
-        {
             _tabbar.Clear();
             _tabButtons.Clear();
 
-            foreach (string route in NavByRole[_role])
+            foreach (string route in NavByRole[Role])
             {
                 if (!_screens.TryGetValue(route, out ScreenView screen))
                 {
                     continue;
                 }
 
-                var button = Ui.Button(string.Empty, () => Navigate(route), "tab-item");
-                button.userData = route;
-                button.Add(Ui.Monogram(screen.Badge, "tab-badge"));
-                button.Add(Ui.Text(screen.NavLabel, "tab-label"));
-                _tabButtons.Add((route, button));
-                _tabbar.Add(button);
+                var railButton = Ui.Button(string.Empty, () => Navigate(route), "nav-item");
+                railButton.userData = route;
+                railButton.Add(Ui.Monogram(screen.Badge, "nav-badge"));
+                railButton.Add(Ui.Text(screen.NavLabel, "nav-label"));
+                _railButtons.Add((route, railButton));
+                _railNav.Add(railButton);
+
+                var tabButton = Ui.Button(string.Empty, () => Navigate(route), "tab-item");
+                tabButton.userData = route;
+                tabButton.Add(Ui.Monogram(screen.Badge, "tab-badge"));
+                tabButton.Add(Ui.Text(screen.NavLabel, "tab-label"));
+                _tabButtons.Add((route, tabButton));
+                _tabbar.Add(tabButton);
             }
         }
 
-        private void UpdatePersonaChrome()
+        private void UpdatePersonChrome()
         {
-            var persona = Persona;
-            if (_railName != null)
+            if (_railName == null)
             {
-                _railName.text = persona.Name;
-                _railEmail.text = persona.Email;
-                _railAvatarText.text = persona.Initials;
-                _wideAvatarText.text = persona.Initials;
-                _compactAvatarText.text = persona.Initials;
+                return;
             }
 
-            RefreshRoleButtons();
+            string initials = Initials;
+            _railName.text = DisplayName;
+            _railEmail.text = Email;
+            _railAvatarText.text = initials;
+            _wideAvatarText.text = initials;
+            _compactAvatarText.text = initials;
+            _compactRoleLabel.text = RoleLabel;
         }
 
         private void UpdateClock()
@@ -352,36 +298,22 @@ namespace ColdRoom.App
             }
         }
 
-        public void SetRole(UserRole role, bool notify = true)
+        public void ApplyUser(User user)
         {
-            if (!Personas.ContainsKey(role))
+            if (user == null)
             {
                 return;
             }
 
-            bool changed = _role != role;
-            _role = role;
+            _user = user;
+            UpdatePersonChrome();
+        }
 
-            RebuildRoleSwitch();
-            RebuildRailNav();
-            RebuildTabbar();
-            UpdatePersonaChrome();
-
-            string defaultRoute = DefaultRoute(role);
-            bool routeStillValid = Array.IndexOf(NavByRole[role], _route) >= 0;
-
-            if (!routeStillValid || changed)
+        public void Logout()
+        {
+            if (_logout != null)
             {
-                Navigate(defaultRoute);
-            }
-            else
-            {
-                RefreshActiveNav();
-            }
-
-            if (notify && changed)
-            {
-                ShowToast($"Previewing the {role} experience");
+                _ = _logout();
             }
         }
 
@@ -395,22 +327,6 @@ namespace ColdRoom.App
             };
         }
 
-        private void CycleRole()
-        {
-            switch (_role)
-            {
-                case UserRole.Customer:
-                    SetRole(UserRole.Operator);
-                    break;
-                case UserRole.Operator:
-                    SetRole(UserRole.Rider);
-                    break;
-                default:
-                    SetRole(UserRole.Customer);
-                    break;
-            }
-        }
-
         public void Navigate(string route)
         {
             if (!_screens.TryGetValue(route, out ScreenView screen))
@@ -419,7 +335,7 @@ namespace ColdRoom.App
                 return;
             }
 
-            if (Array.IndexOf(NavByRole[_role], route) < 0)
+            if (Array.IndexOf(NavByRole[Role], route) < 0)
             {
                 return;
             }
@@ -495,6 +411,22 @@ namespace ColdRoom.App
             {
                 _breadcrumb.text = _currentScreen.NavLabel.ToUpperInvariant();
             }
+        }
+
+        private static string InitialsOf(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return "?";
+            }
+
+            string[] parts = fullName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 1)
+            {
+                return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpperInvariant();
+            }
+
+            return (parts[0][0].ToString() + parts[parts.Length - 1][0]).ToUpperInvariant();
         }
     }
 }
